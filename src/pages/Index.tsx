@@ -5,11 +5,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SiteIdInput } from "@/components/SiteIdInput";
 import { CaidDataUpload } from "@/components/CaidDataUpload";
 import { MatchingResults } from "@/components/MatchingResults";
-import { OaidCatalogUpload } from "@/components/OaidCatalogUpload";
-import { RegionSelection } from "@/components/RegionSelection";
-import { OaidReferenceInputV2 } from "@/components/OaidReferenceInputV2";
+import { OaidReferenceInput } from "@/components/OaidReferenceInput";
 import { ExportResults } from "@/components/ExportResults";
-import { Database, FileText, GitMerge, Settings, Download, Layers } from "lucide-react";
+import { Database, FileText, GitMerge, Settings, Download } from "lucide-react";
 
 export interface SiteIdData {
   siteId: string;
@@ -27,16 +25,9 @@ export interface MatchedData {
   order: number;
 }
 
-export interface OaidCatalogData {
-  oaid: string;
-  longDescription: string;
-  region: string;
-}
-
 export interface OaidData {
   oaid: string;
   quantity: number;
-  longDescription: string;
 }
 
 export interface FinalData {
@@ -51,8 +42,6 @@ const Index = () => {
   const [siteIdList, setSiteIdList] = useState<SiteIdData[]>([]);
   const [caidData, setCaidData] = useState<CaidData[]>([]);
   const [matchedResults, setMatchedResults] = useState<MatchedData[]>([]);
-  const [oaidCatalog, setOaidCatalog] = useState<OaidCatalogData[]>([]);
-  const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
   const [oaidPattern, setOaidPattern] = useState<OaidData[]>([]);
   const [finalResults, setFinalResults] = useState<FinalData[]>([]);
   const [activeTab, setActiveTab] = useState("input");
@@ -88,16 +77,6 @@ const Index = () => {
     setMatchedResults(matched);
   };
 
-  const handleOaidCatalogUpload = (catalog: OaidCatalogData[]) => {
-    setOaidCatalog(catalog);
-    setActiveTab("regions");
-  };
-
-  const handleRegionSelection = (regions: string[]) => {
-    setSelectedRegions(regions);
-    setActiveTab("oaid");
-  };
-
   const handleOaidPatternSubmit = (pattern: OaidData[]) => {
     setOaidPattern(pattern);
     generateFinalResults(matchedResults, pattern);
@@ -122,21 +101,16 @@ const Index = () => {
     setFinalResults(final);
   };
 
-  const getUniqueRegions = () => {
-    const regions = new Set(oaidCatalog.map(item => item.region));
-    return Array.from(regions);
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            CAID-SITE ID Sorting & Matching with OAID Catalog
+            CAID-SITE ID Sorting & Matching
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Advanced workflow with OAID catalog integration, multi-region selection, 
-            and intelligent OAID matching based on Long Description.
+            Upload your ordered SITE ID list, match with BOQTracker CAID data, 
+            define OAID pattern, and generate final results for your workflow.
           </p>
         </div>
 
@@ -144,36 +118,28 @@ const Index = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Database className="h-6 w-6 text-blue-600" />
-              Enhanced Data Processing Workflow
+              Data Processing Workflow
             </CardTitle>
             <CardDescription>
-              Follow the steps to process SITE ID, CAID data, and integrate with OAID catalog
+              Follow the steps below to process your SITE ID, CAID and OAID data
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-7">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="input" className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
-                  SITE ID
+                  Input SITE ID
                 </TabsTrigger>
                 <TabsTrigger value="upload" disabled={siteIdList.length === 0}>
                   <Database className="h-4 w-4" />
-                  CAID Data
+                  Upload CAID Data
                 </TabsTrigger>
                 <TabsTrigger value="results" disabled={matchedResults.length === 0}>
                   <GitMerge className="h-4 w-4" />
                   Match Results
                 </TabsTrigger>
-                <TabsTrigger value="catalog" disabled={matchedResults.length === 0}>
-                  <Layers className="h-4 w-4" />
-                  OAID Catalog
-                </TabsTrigger>
-                <TabsTrigger value="regions" disabled={oaidCatalog.length === 0}>
-                  <Settings className="h-4 w-4" />
-                  Regions
-                </TabsTrigger>
-                <TabsTrigger value="oaid" disabled={selectedRegions.length === 0}>
+                <TabsTrigger value="oaid" disabled={matchedResults.length === 0}>
                   <Settings className="h-4 w-4" />
                   OAID Pattern
                 </TabsTrigger>
@@ -194,29 +160,13 @@ const Index = () => {
               <TabsContent value="results" className="mt-6">
                 <MatchingResults 
                   results={matchedResults}
-                  onNext={() => setActiveTab("catalog")}
-                />
-              </TabsContent>
-
-              <TabsContent value="catalog" className="mt-6">
-                <OaidCatalogUpload 
-                  onUpload={handleOaidCatalogUpload}
-                />
-              </TabsContent>
-
-              <TabsContent value="regions" className="mt-6">
-                <RegionSelection 
-                  availableRegions={getUniqueRegions()}
-                  selectedRegions={selectedRegions}
-                  onRegionChange={handleRegionSelection}
+                  onNext={() => setActiveTab("oaid")}
                 />
               </TabsContent>
 
               <TabsContent value="oaid" className="mt-6">
-                <OaidReferenceInputV2 
+                <OaidReferenceInput 
                   matchedResults={matchedResults}
-                  oaidCatalog={oaidCatalog}
-                  selectedRegions={selectedRegions}
                   onSubmit={handleOaidPatternSubmit}
                 />
               </TabsContent>
