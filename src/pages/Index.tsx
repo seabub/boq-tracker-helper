@@ -5,8 +5,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SiteIdInput } from "@/components/SiteIdInput";
 import { CaidDataUpload } from "@/components/CaidDataUpload";
 import { MatchingResults } from "@/components/MatchingResults";
+import { OaidReferenceInput } from "@/components/OaidReferenceInput";
 import { ExportResults } from "@/components/ExportResults";
-import { Database, FileText, GitMerge, Download } from "lucide-react";
+import { Database, FileText, GitMerge, Settings, Download } from "lucide-react";
 
 export interface SiteIdData {
   siteId: string;
@@ -24,11 +25,25 @@ export interface MatchedData {
   order: number;
 }
 
+export interface OaidData {
+  oaid: string;
+  quantity: number;
+}
+
+export interface FinalData {
+  siteId: string;
+  caid: string;
+  order: number;
+  oaid: string;
+  quantity: number;
+}
+
 const Index = () => {
   const [siteIdList, setSiteIdList] = useState<SiteIdData[]>([]);
   const [caidData, setCaidData] = useState<CaidData[]>([]);
   const [matchedResults, setMatchedResults] = useState<MatchedData[]>([]);
-  const [duplicateCount, setDuplicateCount] = useState<number>(1);
+  const [oaidPattern, setOaidPattern] = useState<OaidData[]>([]);
+  const [finalResults, setFinalResults] = useState<FinalData[]>([]);
   const [activeTab, setActiveTab] = useState("input");
 
   const handleSiteIdSubmit = (data: SiteIdData[]) => {
@@ -62,14 +77,28 @@ const Index = () => {
     setMatchedResults(matched);
   };
 
-  const getFinalResults = () => {
-    const duplicated: MatchedData[] = [];
-    matchedResults.forEach((item) => {
-      for (let i = 0; i < duplicateCount; i++) {
-        duplicated.push({ ...item });
-      }
+  const handleOaidPatternSubmit = (pattern: OaidData[]) => {
+    setOaidPattern(pattern);
+    generateFinalResults(matchedResults, pattern);
+    setActiveTab("export");
+  };
+
+  const generateFinalResults = (matched: MatchedData[], pattern: OaidData[]) => {
+    const final: FinalData[] = [];
+    
+    matched.forEach((item) => {
+      pattern.forEach((oaidItem) => {
+        final.push({
+          siteId: item.siteId,
+          caid: item.caid,
+          order: item.order,
+          oaid: oaidItem.oaid,
+          quantity: oaidItem.quantity
+        });
+      });
     });
-    return duplicated;
+
+    setFinalResults(final);
   };
 
   return (
@@ -81,7 +110,7 @@ const Index = () => {
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Upload your ordered SITE ID list, match with BOQTracker CAID data, 
-            and generate duplicated results for your workflow.
+            define OAID pattern, and generate final results for your workflow.
           </p>
         </div>
 
@@ -92,12 +121,12 @@ const Index = () => {
               Data Processing Workflow
             </CardTitle>
             <CardDescription>
-              Follow the steps below to process your SITE ID and CAID data
+              Follow the steps below to process your SITE ID, CAID and OAID data
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="input" className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
                   Input SITE ID
@@ -110,7 +139,11 @@ const Index = () => {
                   <GitMerge className="h-4 w-4" />
                   Match Results
                 </TabsTrigger>
-                <TabsTrigger value="export" disabled={matchedResults.length === 0}>
+                <TabsTrigger value="oaid" disabled={matchedResults.length === 0}>
+                  <Settings className="h-4 w-4" />
+                  OAID Pattern
+                </TabsTrigger>
+                <TabsTrigger value="export" disabled={finalResults.length === 0}>
                   <Download className="h-4 w-4" />
                   Export
                 </TabsTrigger>
@@ -127,15 +160,21 @@ const Index = () => {
               <TabsContent value="results" className="mt-6">
                 <MatchingResults 
                   results={matchedResults}
-                  duplicateCount={duplicateCount}
-                  onDuplicateCountChange={setDuplicateCount}
+                  onNext={() => setActiveTab("oaid")}
+                />
+              </TabsContent>
+
+              <TabsContent value="oaid" className="mt-6">
+                <OaidReferenceInput 
+                  matchedResults={matchedResults}
+                  onSubmit={handleOaidPatternSubmit}
                 />
               </TabsContent>
 
               <TabsContent value="export" className="mt-6">
                 <ExportResults 
-                  data={getFinalResults()}
-                  duplicateCount={duplicateCount}
+                  data={finalResults}
+                  oaidPattern={oaidPattern}
                 />
               </TabsContent>
             </Tabs>

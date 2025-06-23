@@ -1,26 +1,20 @@
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { GitMerge, Copy, ArrowRight } from "lucide-react";
+import { GitMerge, ArrowRight } from "lucide-react";
 import { MatchedData } from "@/pages/Index";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 interface MatchingResultsProps {
   results: MatchedData[];
-  duplicateCount: number;
-  onDuplicateCountChange: (count: number) => void;
+  onNext: () => void;
 }
 
 export const MatchingResults = ({ 
   results, 
-  duplicateCount, 
-  onDuplicateCountChange 
+  onNext
 }: MatchingResultsProps) => {
-  const totalFinalRecords = results.length * duplicateCount;
-
   return (
     <div className="space-y-6">
       <Card>
@@ -30,7 +24,7 @@ export const MatchingResults = ({
             Matching Results
           </CardTitle>
           <CardDescription>
-            Review the matched SITE ID and CAID pairs, then set duplication count
+            Review the matched SITE ID and CAID pairs, then proceed to define OAID pattern
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -46,38 +40,8 @@ export const MatchingResults = ({
             </Badge>
           </div>
 
-          <div className="space-y-4">
-            <div className="flex items-center gap-4">
-              <div className="space-y-1">
-                <Label htmlFor="duplicateCount">Duplication Count</Label>
-                <Input
-                  id="duplicateCount"
-                  type="number"
-                  min="1"
-                  max="100"
-                  value={duplicateCount}
-                  onChange={(e) => onDuplicateCountChange(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="w-24"
-                />
-              </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Copy className="h-4 w-4" />
-                <span>Each pair will be duplicated {duplicateCount} time(s)</span>
-              </div>
-            </div>
-
-            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <p className="text-blue-800 font-semibold">
-                Final Output: {totalFinalRecords} total records
-              </p>
-              <p className="text-blue-600 text-sm">
-                {results.length} unique pairs × {duplicateCount} duplicates = {totalFinalRecords} records
-              </p>
-            </div>
-          </div>
-
           <div className="space-y-2">
-            <Label>Matched Data Preview</Label>
+            <h3 className="font-semibold">Matched Data Preview</h3>
             <div className="border rounded-lg overflow-hidden">
               <Table>
                 <TableHeader>
@@ -109,6 +73,16 @@ export const MatchingResults = ({
                 </div>
               )}
             </div>
+          </div>
+
+          <div className="flex justify-end">
+            <Button 
+              onClick={onNext}
+              className="flex items-center gap-2"
+            >
+              Continue to OAID Pattern
+              <ArrowRight className="h-4 w-4" />
+            </Button>
           </div>
         </CardContent>
       </Card>
