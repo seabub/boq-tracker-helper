@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -6,6 +5,7 @@ import { Download, FileText, FileSpreadsheet, Copy } from "lucide-react";
 import { FinalData, OaidData } from "@/pages/Index";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
+import * as XLSX from 'xlsx';
 
 interface ExportResultsProps {
   data: FinalData[];
@@ -15,31 +15,29 @@ interface ExportResultsProps {
 export const ExportResults = ({ data, oaidPattern }: ExportResultsProps) => {
   const { toast } = useToast();
 
-  const downloadAsCSV = () => {
-    const csvContent = [
-      'Order,SITE_ID,CAID,OAID,Quantity',
-      ...data.map(item => `${item.order},${item.siteId},${item.caid},${item.oaid},${item.quantity}`)
-    ].join('\n');
+  const downloadAsXLSX = () => {
+    // Prepare data without siteId and order
+    const exportData = data.map(item => ({
+      CAID: item.caid,
+      OAID: item.oaid,
+      Quantity: item.quantity
+    }));
 
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.setAttribute('hidden', '');
-    a.setAttribute('href', url);
-    a.setAttribute('download', `final-caid-site-oaid-results.csv`);
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "CAID-OAID Results");
+    
+    XLSX.writeFile(workbook, "final-caid-oaid-results.xlsx");
 
     toast({
       title: "Download Started",
-      description: "CSV file has been downloaded successfully"
+      description: "XLSX file has been downloaded successfully"
     });
   };
 
   const downloadAsText = () => {
     const textContent = data.map(item => 
-      `${item.siteId}\t${item.caid}\t${item.oaid}\t${item.quantity}`
+      `${item.caid}\t${item.oaid}\t${item.quantity}`
     ).join('\n');
 
     const blob = new Blob([textContent], { type: 'text/plain' });
@@ -47,7 +45,7 @@ export const ExportResults = ({ data, oaidPattern }: ExportResultsProps) => {
     const a = document.createElement('a');
     a.setAttribute('hidden', '');
     a.setAttribute('href', url);
-    a.setAttribute('download', `final-caid-site-oaid-results.txt`);
+    a.setAttribute('download', `final-caid-oaid-results.txt`);
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -60,7 +58,7 @@ export const ExportResults = ({ data, oaidPattern }: ExportResultsProps) => {
 
   const copyToClipboard = () => {
     const textContent = data.map(item => 
-      `${item.siteId}\t${item.caid}\t${item.oaid}\t${item.quantity}`
+      `${item.caid}\t${item.oaid}\t${item.quantity}`
     ).join('\n');
     navigator.clipboard.writeText(textContent).then(() => {
       toast({
@@ -82,7 +80,7 @@ export const ExportResults = ({ data, oaidPattern }: ExportResultsProps) => {
             Export Final Results
           </CardTitle>
           <CardDescription>
-            Download or copy your final processed data with SITE ID, CAID, OAID and Quantity
+            Download or copy your final processed data with CAID, OAID and Quantity
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -120,11 +118,11 @@ export const ExportResults = ({ data, oaidPattern }: ExportResultsProps) => {
             <h3 className="font-semibold">Export Options</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
               <Button 
-                onClick={downloadAsCSV}
+                onClick={downloadAsXLSX}
                 className="flex items-center gap-2 bg-green-600 hover:bg-green-700"
               >
                 <FileSpreadsheet className="h-4 w-4" />
-                Download CSV
+                Download XLSX
               </Button>
               <Button 
                 onClick={downloadAsText}
