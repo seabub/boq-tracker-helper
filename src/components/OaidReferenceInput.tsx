@@ -21,12 +21,12 @@ export const OaidReferenceInput = ({
 }: OaidReferenceInputProps) => {
   const [selectedReference, setSelectedReference] = useState<MatchedData | null>(null);
   const [oaidPattern, setOaidPattern] = useState<OaidData[]>([
-    { oaid: "", quantity: 1 }
+    { oaid: "", quantity: 1, longDescription: "" }
   ]);
   const { toast } = useToast();
 
   const addOaidRow = () => {
-    setOaidPattern([...oaidPattern, { oaid: "", quantity: 1 }]);
+    setOaidPattern([...oaidPattern, { oaid: "", quantity: 1, longDescription: "" }]);
   };
 
   const removeOaidRow = (index: number) => {
@@ -36,7 +36,7 @@ export const OaidReferenceInput = ({
     }
   };
 
-  const updateOaid = (index: number, field: 'oaid' | 'quantity', value: string | number) => {
+  const updateOaid = (index: number, field: 'oaid' | 'quantity' | 'longDescription', value: string | number) => {
     const newPattern = [...oaidPattern];
     newPattern[index] = { ...newPattern[index], [field]: value };
     setOaidPattern(newPattern);
@@ -145,7 +145,7 @@ export const OaidReferenceInput = ({
               <div>
                 <Label className="text-base font-semibold">Step 2: Define OAID Pattern</Label>
                 <p className="text-sm text-gray-600 mt-1">
-                  Add OAIDs and quantities for the reference CAID
+                  Add OAIDs, descriptions and quantities for the reference CAID
                 </p>
               </div>
 
@@ -158,6 +158,14 @@ export const OaidReferenceInput = ({
                         value={item.oaid}
                         onChange={(e) => updateOaid(index, 'oaid', e.target.value)}
                         className="font-mono"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <Input
+                        placeholder="Long Description"
+                        value={item.longDescription}
+                        onChange={(e) => updateOaid(index, 'longDescription', e.target.value)}
+                        className="text-sm"
                       />
                     </div>
                     <div className="w-24">
@@ -196,7 +204,7 @@ export const OaidReferenceInput = ({
                   <div className="space-y-1 mt-2">
                     {oaidPattern.filter(item => item.oaid.trim() !== "").map((item, index) => (
                       <div key={index} className="text-blue-600 text-sm font-mono">
-                        {item.oaid} (Qty: {item.quantity})
+                        {item.oaid} - {item.longDescription} (Qty: {item.quantity})
                       </div>
                     ))}
                   </div>
