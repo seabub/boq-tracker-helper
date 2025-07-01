@@ -1,15 +1,16 @@
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Download, FileText, FileSpreadsheet, Copy } from "lucide-react";
-import { FinalData, OaidData } from "@/pages/Index";
+import { FinalData, OaidTemplate } from "@/pages/Index";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
 import * as XLSX from 'xlsx';
 
 interface ExportResultsProps {
   data: FinalData[];
-  oaidPattern: OaidData[];
+  oaidPattern: OaidTemplate[];
 }
 
 export const ExportResults = ({ data, oaidPattern }: ExportResultsProps) => {
@@ -20,6 +21,7 @@ export const ExportResults = ({ data, oaidPattern }: ExportResultsProps) => {
     const exportData = data.map(item => ({
       CAID: item.caid,
       OAID: item.oaid,
+      'Long Description': item.longDescription,
       Quantity: item.quantity
     }));
 
@@ -37,7 +39,7 @@ export const ExportResults = ({ data, oaidPattern }: ExportResultsProps) => {
 
   const downloadAsText = () => {
     const textContent = data.map(item => 
-      `${item.caid}\t${item.oaid}\t${item.quantity}`
+      `${item.caid}\t${item.oaid}\t${item.longDescription}\t${item.quantity}`
     ).join('\n');
 
     const blob = new Blob([textContent], { type: 'text/plain' });
@@ -58,7 +60,7 @@ export const ExportResults = ({ data, oaidPattern }: ExportResultsProps) => {
 
   const copyToClipboard = () => {
     const textContent = data.map(item => 
-      `${item.caid}\t${item.oaid}\t${item.quantity}`
+      `${item.caid}\t${item.oaid}\t${item.longDescription}\t${item.quantity}`
     ).join('\n');
     navigator.clipboard.writeText(textContent).then(() => {
       toast({
@@ -70,6 +72,7 @@ export const ExportResults = ({ data, oaidPattern }: ExportResultsProps) => {
 
   const uniqueSiteIds = new Set(data.map(item => item.siteId)).size;
   const uniqueCAIDs = new Set(data.map(item => item.caid)).size;
+  const uniqueOAIDs = new Set(data.map(item => item.oaid)).size;
 
   return (
     <div className="space-y-6">
@@ -80,7 +83,7 @@ export const ExportResults = ({ data, oaidPattern }: ExportResultsProps) => {
             Export Final Results
           </CardTitle>
           <CardDescription>
-            Download or copy your final processed data with CAID, OAID and Quantity
+            Download or copy your final processed data with CAID, OAID, Long Description and Quantity
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -94,8 +97,8 @@ export const ExportResults = ({ data, oaidPattern }: ExportResultsProps) => {
               <div className="text-blue-600 text-sm">Unique CAIDs</div>
             </div>
             <div className="p-4 bg-purple-50 rounded-lg border border-purple-200 text-center">
-              <div className="text-2xl font-bold text-purple-800">{oaidPattern.length}</div>
-              <div className="text-purple-600 text-sm">OAID Types</div>
+              <div className="text-2xl font-bold text-purple-800">{uniqueOAIDs}</div>
+              <div className="text-purple-600 text-sm">Unique OAIDs</div>
             </div>
             <div className="p-4 bg-orange-50 rounded-lg border border-orange-200 text-center">
               <div className="text-2xl font-bold text-orange-800">{uniqueSiteIds}</div>
@@ -104,12 +107,15 @@ export const ExportResults = ({ data, oaidPattern }: ExportResultsProps) => {
           </div>
 
           <div className="p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-            <h3 className="font-semibold text-yellow-800 mb-2">OAID Pattern Applied:</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+            <h3 className="font-semibold text-yellow-800 mb-2">OAID Templates Used:</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
               {oaidPattern.map((item, index) => (
-                <Badge key={index} variant="outline" className="justify-center">
-                  {item.oaid} (Qty: {item.quantity})
-                </Badge>
+                <div key={index} className="text-sm">
+                  <Badge variant="outline" className="justify-start">
+                    <span className="font-mono text-blue-600">{item.oaid}</span>
+                    <span className="ml-2 text-gray-600">(Qty: {item.quantity})</span>
+                  </Badge>
+                </div>
               ))}
             </div>
           </div>
@@ -129,7 +135,7 @@ export const ExportResults = ({ data, oaidPattern }: ExportResultsProps) => {
                 variant="outline"
                 className="flex items-center gap-2"
               >
-                <FileText className="h-4 w-4" />
+                <FileTextClassName="h-4 w-4" />
                 Download TXT
               </Button>
               <Button 
@@ -153,6 +159,7 @@ export const ExportResults = ({ data, oaidPattern }: ExportResultsProps) => {
                     <TableHead>SITE ID</TableHead>
                     <TableHead>CAID</TableHead>
                     <TableHead>OAID</TableHead>
+                    <TableHead>Long Description</TableHead>
                     <TableHead>Quantity</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -163,6 +170,7 @@ export const ExportResults = ({ data, oaidPattern }: ExportResultsProps) => {
                       <TableCell className="font-mono">{item.siteId}</TableCell>
                       <TableCell className="font-mono text-green-600">{item.caid}</TableCell>
                       <TableCell className="font-mono text-blue-600">{item.oaid}</TableCell>
+                      <TableCell className="text-sm text-gray-700">{item.longDescription}</TableCell>
                       <TableCell className="font-mono text-purple-600">{item.quantity}</TableCell>
                     </TableRow>
                   ))}

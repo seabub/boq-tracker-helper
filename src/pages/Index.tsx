@@ -5,11 +5,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SiteIdInput } from "@/components/SiteIdInput";
 import { CaidDataUpload } from "@/components/CaidDataUpload";
 import { MatchingResults } from "@/components/MatchingResults";
-import { OaidCatalogUpload } from "@/components/OaidCatalogUpload";
-import { RegionSelection } from "@/components/RegionSelection";
-import { CaidBlockManager } from "@/components/CaidBlockManager";
+import { OaidTemplateManager } from "@/components/OaidTemplateManager";
+import { CaidBlockSelector } from "@/components/CaidBlockSelector";
 import { ExportResults } from "@/components/ExportResults";
-import { Database, FileText, GitMerge, Settings, Download, Layers } from "lucide-react";
+import { Database, FileText, GitMerge, Settings, Download, Layers, Template } from "lucide-react";
 
 export interface SiteIdData {
   siteId: string;
@@ -27,24 +26,18 @@ export interface MatchedData {
   order: number;
 }
 
-export interface OaidCatalogData {
+export interface OaidTemplate {
+  id: string;
   oaid: string;
-  reg: string;
-  regAlias: string;
   longDescription: string;
-}
-
-export interface OaidData {
-  oaid: string;
   quantity: number;
-  longDescription: string;
 }
 
-export interface CaidBlock {
+export interface CaidBlockConfig {
   id: string;
   name: string;
   caids: string[];
-  oaidPattern: OaidData[];
+  selectedTemplates: string[]; // Template IDs
 }
 
 export interface FinalData {
@@ -52,6 +45,7 @@ export interface FinalData {
   caid: string;
   order: number;
   oaid: string;
+  longDescription: string;
   quantity: number;
 }
 
@@ -59,9 +53,8 @@ const Index = () => {
   const [siteIdList, setSiteIdList] = useState<SiteIdData[]>([]);
   const [caidData, setCaidData] = useState<CaidData[]>([]);
   const [matchedResults, setMatchedResults] = useState<MatchedData[]>([]);
-  const [oaidCatalog, setOaidCatalog] = useState<OaidCatalogData[]>([]);
-  const [selectedRegions, setSelectedRegions] = useState<string[]>([]);
-  const [caidBlocks, setCaidBlocks] = useState<CaidBlock[]>([]);
+  const [oaidTemplates, setOaidTemplates] = useState<OaidTemplate[]>([]);
+  const [caidBlocks, setCaidBlocks] = useState<CaidBlockConfig[]>([]);
   const [finalResults, setFinalResults] = useState<FinalData[]>([]);
   const [activeTab, setActiveTab] = useState("input");
 
@@ -96,23 +89,22 @@ const Index = () => {
     setMatchedResults(matched);
   };
 
-  const handleOaidCatalogUpload = (data: OaidCatalogData[]) => {
-    setOaidCatalog(data);
-    setActiveTab("regions");
-  };
-
-  const handleRegionSelection = (regions: string[]) => {
-    setSelectedRegions(regions);
+  const handleTemplatesUpdate = (templates: OaidTemplate[]) => {
+    setOaidTemplates(templates);
     setActiveTab("blocks");
   };
 
-  const handleCaidBlocksUpdate = (blocks: CaidBlock[]) => {
+  const handleBlocksUpdate = (blocks: CaidBlockConfig[]) => {
     setCaidBlocks(blocks);
-    generateFinalResults(matchedResults, blocks);
+    generateFinalResults(matchedResults, blocks, oaidTemplates);
     setActiveTab("export");
   };
 
-  const generateFinalResults = (matched: MatchedData[], blocks: CaidBlock[]) => {
+  const generateFinalResults = (
+    matched: MatchedData[], 
+    blocks: CaidBlockConfig[], 
+    templates: OaidTemplate[]
+  ) => {
     const final: FinalData[] = [];
     
     matched.forEach((item) => {
@@ -120,15 +112,19 @@ const Index = () => {
       const block = blocks.find(block => block.caids.includes(item.caid));
       
       if (block) {
-        // Apply the OAID pattern from the block
-        block.oaidPattern.forEach((oaidItem) => {
-          final.push({
-            siteId: item.siteId,
-            caid: item.caid,
-            order: item.order,
-            oaid: oaidItem.oaid,
-            quantity: oaidItem.quantity
-          });
+        // Apply each selected template from the block
+        block.selectedTemplates.forEach((templateId) => {
+          const template = templates.find(t => t.id === templateId);
+          if (template) {
+            final.push({
+              siteId: item.siteId,
+              caid: item.caid,
+              order: item.order,
+              oaid: template.oaid,
+              longDescription: template.longDescription,
+              quantity: template.quantity
+            });
+          }
         });
       }
     });
@@ -136,18 +132,16 @@ const Index = () => {
     setFinalResults(final);
   };
 
-  const availableRegions = [...new Set(oaidCatalog.map(item => item.reg))];
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            CAID-SITE ID Sorting & Matching (Block Management)
+            CAID-SITE ID Sorting & Matching (Template Management)
           </h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
             Upload your ordered SITE ID list, match with BOQTracker CAID data, 
-            import OAID catalog, and define OAID patterns for different CAID blocks.
+            manage OAID templates, and apply them to CAID blocks.
           </p>
         </div>
 
@@ -155,15 +149,15 @@ const Index = () => {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Database className="h-6 w-6 text-blue-600" />
-              Enhanced Data Processing Workflow
+              Enhanced Template Management Workflow
             </CardTitle>
             <CardDescription>
-              Follow the steps below to process your data with CAID block management
+              Follow the steps below to process your data with OAID template management
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full grid-cols-7">
+              <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="input" className="flex items-center gap-2">
                   <FileText className="h-4 w-4" />
                   Input SITE ID
@@ -176,15 +170,11 @@ const Index = () => {
                   <GitMerge className="h-4 w-4" />
                   Match Results
                 </TabsTrigger>
-                <TabsTrigger value="catalog" disabled={matchedResults.length === 0}>
-                  <Settings className="h-4 w-4" />
-                  OAID Catalog
+                <TabsTrigger value="templates" disabled={matchedResults.length === 0}>
+                  <Template className="h-4 w-4" />
+                  OAID Templates
                 </TabsTrigger>
-                <TabsTrigger value="regions" disabled={oaidCatalog.length === 0}>
-                  <Settings className="h-4 w-4" />
-                  Select Regions
-                </TabsTrigger>
-                <TabsTrigger value="blocks" disabled={selectedRegions.length === 0}>
+                <TabsTrigger value="blocks" disabled={oaidTemplates.length === 0}>
                   <Layers className="h-4 w-4" />
                   CAID Blocks
                 </TabsTrigger>
@@ -205,34 +195,29 @@ const Index = () => {
               <TabsContent value="results" className="mt-6">
                 <MatchingResults 
                   results={matchedResults}
-                  onNext={() => setActiveTab("catalog")}
+                  onNext={() => setActiveTab("templates")}
                 />
               </TabsContent>
 
-              <TabsContent value="catalog" className="mt-6">
-                <OaidCatalogUpload onUpload={handleOaidCatalogUpload} />
-              </TabsContent>
-
-              <TabsContent value="regions" className="mt-6">
-                <RegionSelection 
-                  availableRegions={availableRegions}
-                  onSelection={handleRegionSelection}
+              <TabsContent value="templates" className="mt-6">
+                <OaidTemplateManager 
+                  templates={oaidTemplates}
+                  onTemplatesUpdate={handleTemplatesUpdate}
                 />
               </TabsContent>
 
               <TabsContent value="blocks" className="mt-6">
-                <CaidBlockManager 
+                <CaidBlockSelector 
                   matchedResults={matchedResults}
-                  oaidCatalog={oaidCatalog}
-                  selectedRegions={selectedRegions}
-                  onBlocksUpdate={handleCaidBlocksUpdate}
+                  templates={oaidTemplates}
+                  onBlocksUpdate={handleBlocksUpdate}
                 />
               </TabsContent>
 
               <TabsContent value="export" className="mt-6">
                 <ExportResults 
                   data={finalResults}
-                  oaidPattern={caidBlocks.flatMap(block => block.oaidPattern)}
+                  oaidPattern={oaidTemplates}
                 />
               </TabsContent>
             </Tabs>

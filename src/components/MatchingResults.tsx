@@ -24,7 +24,7 @@ export const MatchingResults = ({
             Matching Results
           </CardTitle>
           <CardDescription>
-            Review the matched SITE ID and CAID pairs, then proceed to define OAID pattern
+            Review the matched SITE ID and CAID pairs, then proceed to create OAID templates
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -80,7 +80,7 @@ export const MatchingResults = ({
               onClick={onNext}
               className="flex items-center gap-2"
             >
-              Continue to OAID Pattern
+              Continue to OAID Templates
               <ArrowRight className="h-4 w-4" />
             </Button>
           </div>
