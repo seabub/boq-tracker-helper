@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -110,20 +111,6 @@ export const OaidTemplateManager = ({
       title: "Template Deleted",
       description: "Template berhasil dihapus"
     });
-  };
-
-  const handleNext = () => {
-    if (templates.length === 0) {
-      toast({
-        title: "Tidak ada template",
-        description: "Buat minimal satu OAID template terlebih dahulu",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    // Update templates without changing to next tab - let parent handle it
-    onTemplatesUpdate(templates);
   };
 
   return (
@@ -271,17 +258,6 @@ export const OaidTemplateManager = ({
           <div className="p-4 bg-purple-50 rounded-lg border border-purple-200 text-center">
             <div className="text-2xl font-bold text-purple-800">{templates.length}</div>
             <div className="text-purple-600 text-sm">OAID Templates Ready</div>
-          </div>
-
-          <div className="flex justify-end">
-            <Button 
-              onClick={handleNext}
-              className="flex items-center gap-2"
-              disabled={templates.length === 0}
-            >
-              Continue to CAID Blocks
-              <ArrowRight className="h-4 w-4" />
-            </Button>
           </div>
         </CardContent>
       </Card>

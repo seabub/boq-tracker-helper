@@ -17,6 +17,11 @@ interface CaidBlockSelectorProps {
   onBlocksUpdate: (blocks: CaidBlockConfig[]) => void;
 }
 
+interface TemplateWithQuantity {
+  templateId: string;
+  quantity: number;
+}
+
 export const CaidBlockSelector = ({ 
   matchedResults, 
   templates, 
@@ -24,8 +29,7 @@ export const CaidBlockSelector = ({
 }: CaidBlockSelectorProps) => {
   const [selectedCaids, setSelectedCaids] = useState<string[]>([]);
   const [blocks, setBlocks] = useState<CaidBlockConfig[]>([]);
-  const [blockName, setBlockName] = useState('');
-  const [selectedTemplates, setSelectedTemplates] = useState<string[]>([]);
+  const [selectedTemplatesWithQty, setSelectedTemplatesWithQty] = useState<TemplateWithQuantity[]>([]);
   const [shiftPressed, setShiftPressed] = useState(false);
   const [lastSelectedIndex, setLastSelectedIndex] = useState<number | null>(null);
   const { toast } = useToast();
@@ -64,22 +68,25 @@ export const CaidBlockSelector = ({
 
   const handleTemplateSelect = (templateId: string, checked: boolean) => {
     if (checked) {
-      setSelectedTemplates([...selectedTemplates, templateId]);
+      const template = templates.find(t => t.id === templateId);
+      if (template) {
+        setSelectedTemplatesWithQty([...selectedTemplatesWithQty, {
+          templateId,
+          quantity: template.quantity
+        }]);
+      }
     } else {
-      setSelectedTemplates(selectedTemplates.filter(id => id !== templateId));
+      setSelectedTemplatesWithQty(selectedTemplatesWithQty.filter(t => t.templateId !== templateId));
     }
   };
 
-  const createBlock = () => {
-    if (!blockName.trim()) {
-      toast({
-        title: "Block name required",
-        description: "Masukkan nama untuk blok CAID",
-        variant: "destructive"
-      });
-      return;
-    }
+  const handleQuantityChange = (templateId: string, quantity: number) => {
+    setSelectedTemplatesWithQty(selectedTemplatesWithQty.map(t => 
+      t.templateId === templateId ? { ...t, quantity } : t
+    ));
+  };
 
+  const createBlock = () => {
     if (selectedCaids.length === 0) {
       toast({
         title: "No CAIDs selected",
@@ -89,7 +96,7 @@ export const CaidBlockSelector = ({
       return;
     }
 
-    if (selectedTemplates.length === 0) {
+    if (selectedTemplatesWithQty.length === 0) {
       toast({
         title: "No templates selected",
         description: "Pilih minimal satu template OAID untuk blok",
@@ -100,20 +107,27 @@ export const CaidBlockSelector = ({
 
     const newBlock: CaidBlockConfig = {
       id: `block_${Date.now()}`,
-      name: blockName.trim(),
+      name: `Block ${blocks.length + 1}`,
       caids: [...selectedCaids],
-      selectedTemplates: [...selectedTemplates]
+      selectedTemplates: selectedTemplatesWithQty.map(t => t.templateId)
     };
+
+    // Update template quantities
+    selectedTemplatesWithQty.forEach(({ templateId, quantity }) => {
+      const template = templates.find(t => t.id === templateId);
+      if (template) {
+        template.quantity = quantity;
+      }
+    });
 
     setBlocks([...blocks, newBlock]);
     setSelectedCaids([]);
-    setSelectedTemplates([]);
-    setBlockName('');
+    setSelectedTemplatesWithQty([]);
     setLastSelectedIndex(null);
 
     toast({
       title: "Block Created",
-      description: `Block "${newBlock.name}" berhasil dibuat dengan ${newBlock.caids.length} CAIDs`
+      description: `Block berhasil dibuat dengan ${newBlock.caids.length} CAIDs`
     });
   };
 
@@ -237,31 +251,38 @@ export const CaidBlockSelector = ({
               
               <div className="space-y-4">
                 <div>
-                  <Label>Block Name</Label>
-                  <Input
-                    value={blockName}
-                    onChange={(e) => setBlockName(e.target.value)}
-                    placeholder="e.g., AC Equipment Block"
-                  />
-                </div>
-
-                <div>
-                  <Label>Select OAID Templates ({selectedTemplates.length} selected)</Label>
+                  <Label>Select OAID Templates ({selectedTemplatesWithQty.length} selected)</Label>
                   <div className="mt-2 space-y-2 max-h-40 overflow-y-auto border rounded p-3 bg-white">
-                    {templates.map((template) => (
-                      <div key={template.id} className="flex items-center space-x-2">
-                        <Checkbox
-                          id={template.id}
-                          checked={selectedTemplates.includes(template.id)}
-                          onCheckedChange={(checked) => handleTemplateSelect(template.id, checked as boolean)}
-                        />
-                        <label htmlFor={template.id} className="text-sm flex-1 cursor-pointer">
-                          <span className="font-mono text-blue-600">{template.oaid}</span>
-                          <span className="text-gray-600 ml-2">- {template.longDescription}</span>
-                          <span className="text-purple-600 ml-2">(Qty: {template.quantity})</span>
-                        </label>
-                      </div>
-                    ))}
+                    {templates.map((template) => {
+                      const selectedTemplate = selectedTemplatesWithQty.find(t => t.templateId === template.id);
+                      const isSelected = !!selectedTemplate;
+                      
+                      return (
+                        <div key={template.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={template.id}
+                            checked={isSelected}
+                            onCheckedChange={(checked) => handleTemplateSelect(template.id, checked as boolean)}
+                          />
+                          <label htmlFor={template.id} className="text-sm flex-1 cursor-pointer">
+                            <span className="font-mono text-blue-600">{template.oaid}</span>
+                            <span className="text-gray-600 ml-2">- {template.longDescription}</span>
+                          </label>
+                          {isSelected && (
+                            <div className="flex items-center gap-2">
+                              <Label className="text-xs">Qty:</Label>
+                              <Input
+                                type="number"
+                                min="1"
+                                value={selectedTemplate.quantity}
+                                onChange={(e) => handleQuantityChange(template.id, parseInt(e.target.value) || 1)}
+                                className="w-16 h-8 text-xs"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 

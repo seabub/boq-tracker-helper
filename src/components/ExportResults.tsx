@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,11 +16,10 @@ export const ExportResults = ({ data, oaidPattern }: ExportResultsProps) => {
   const { toast } = useToast();
 
   const downloadAsXLSX = () => {
-    // Prepare data without siteId and order
+    // Export only CAID, OAID, and Quantity
     const exportData = data.map(item => ({
       CAID: item.caid,
       OAID: item.oaid,
-      'Long Description': item.longDescription,
       Quantity: item.quantity
     }));
 
@@ -39,7 +37,7 @@ export const ExportResults = ({ data, oaidPattern }: ExportResultsProps) => {
 
   const downloadAsText = () => {
     const textContent = data.map(item => 
-      `${item.caid}\t${item.oaid}\t${item.longDescription}\t${item.quantity}`
+      `${item.caid}\t${item.oaid}\t${item.quantity}`
     ).join('\n');
 
     const blob = new Blob([textContent], { type: 'text/plain' });
@@ -60,7 +58,7 @@ export const ExportResults = ({ data, oaidPattern }: ExportResultsProps) => {
 
   const copyToClipboard = () => {
     const textContent = data.map(item => 
-      `${item.caid}\t${item.oaid}\t${item.longDescription}\t${item.quantity}`
+      `${item.caid}\t${item.oaid}\t${item.quantity}`
     ).join('\n');
     navigator.clipboard.writeText(textContent).then(() => {
       toast({
@@ -83,7 +81,7 @@ export const ExportResults = ({ data, oaidPattern }: ExportResultsProps) => {
             Export Final Results
           </CardTitle>
           <CardDescription>
-            Download or copy your final processed data with CAID, OAID, Long Description and Quantity
+            Download or copy your final processed data with CAID, OAID, and Quantity
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">

@@ -7,7 +7,8 @@ import { MatchingResults } from "@/components/MatchingResults";
 import { OaidTemplateManager } from "@/components/OaidTemplateManager";
 import { CaidBlockSelector } from "@/components/CaidBlockSelector";
 import { ExportResults } from "@/components/ExportResults";
-import { Database, FileText, GitMerge, Settings, Download, Layers, BookTemplate } from "lucide-react";
+import { Database, FileText, GitMerge, Settings, Download, Layers, BookTemplate, ArrowRight } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export interface SiteIdData {
   siteId: string;
@@ -111,7 +112,6 @@ const Index = () => {
 
   const handleTemplatesUpdate = (templates: OaidTemplate[]) => {
     setOaidTemplates(templates);
-    setActiveTab("blocks");
   };
 
   const handleBlocksUpdate = (blocks: CaidBlockConfig[]) => {
@@ -224,6 +224,16 @@ const Index = () => {
                   templates={oaidTemplates}
                   onTemplatesUpdate={handleTemplatesUpdate}
                 />
+                <div className="flex justify-end mt-6">
+                  <Button 
+                    onClick={() => setActiveTab("blocks")}
+                    className="flex items-center gap-2"
+                    disabled={oaidTemplates.length === 0}
+                  >
+                    Continue to CAID Blocks
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
               </TabsContent>
 
               <TabsContent value="blocks" className="mt-6">
