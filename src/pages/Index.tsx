@@ -9,37 +9,31 @@ import { CaidBlockSelector } from "@/components/CaidBlockSelector";
 import { ExportResults } from "@/components/ExportResults";
 import { Database, FileText, GitMerge, Settings, Download, Layers, BookTemplate, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
-
 export interface SiteIdData {
   siteId: string;
   order: number;
 }
-
 export interface CaidData {
   siteId: string;
   caid: string;
 }
-
 export interface MatchedData {
   siteId: string;
   caid: string;
   order: number;
 }
-
 export interface OaidTemplate {
   id: string;
   oaid: string;
   longDescription: string;
   quantity: number;
 }
-
 export interface CaidBlockConfig {
   id: string;
   name: string;
   caids: string[];
   selectedTemplates: string[]; // Template IDs
 }
-
 export interface FinalData {
   siteId: string;
   caid: string;
@@ -55,21 +49,18 @@ export interface OaidData {
   quantity: number;
   longDescription: string;
 }
-
 export interface OaidCatalogData {
   oaid: string;
   reg: string;
   regAlias: string;
   longDescription: string;
 }
-
 export interface CaidBlock {
   id: string;
   name: string;
   caids: string[];
   oaidPattern: OaidData[];
 }
-
 const Index = () => {
   const [siteIdList, setSiteIdList] = useState<SiteIdData[]>([]);
   const [caidData, setCaidData] = useState<CaidData[]>([]);
@@ -78,26 +69,19 @@ const Index = () => {
   const [caidBlocks, setCaidBlocks] = useState<CaidBlockConfig[]>([]);
   const [finalResults, setFinalResults] = useState<FinalData[]>([]);
   const [activeTab, setActiveTab] = useState("input");
-
   const handleSiteIdSubmit = (data: SiteIdData[]) => {
     setSiteIdList(data);
     setActiveTab("upload");
   };
-
   const handleCaidDataUpload = (data: CaidData[]) => {
     setCaidData(data);
     performMatching(siteIdList, data);
     setActiveTab("results");
   };
-
   const performMatching = (siteIds: SiteIdData[], caidList: CaidData[]) => {
     const matched: MatchedData[] = [];
-    
-    siteIds.forEach((siteIdItem) => {
-      const matchingCaid = caidList.find(
-        (caidItem) => caidItem.siteId === siteIdItem.siteId
-      );
-      
+    siteIds.forEach(siteIdItem => {
+      const matchingCaid = caidList.find(caidItem => caidItem.siteId === siteIdItem.siteId);
       if (matchingCaid) {
         matched.push({
           siteId: siteIdItem.siteId,
@@ -106,34 +90,24 @@ const Index = () => {
         });
       }
     });
-
     setMatchedResults(matched);
   };
-
   const handleTemplatesUpdate = (templates: OaidTemplate[]) => {
     setOaidTemplates(templates);
   };
-
   const handleBlocksUpdate = (blocks: CaidBlockConfig[]) => {
     setCaidBlocks(blocks);
     generateFinalResults(matchedResults, blocks, oaidTemplates);
     setActiveTab("export");
   };
-
-  const generateFinalResults = (
-    matched: MatchedData[], 
-    blocks: CaidBlockConfig[], 
-    templates: OaidTemplate[]
-  ) => {
+  const generateFinalResults = (matched: MatchedData[], blocks: CaidBlockConfig[], templates: OaidTemplate[]) => {
     const final: FinalData[] = [];
-    
-    matched.forEach((item) => {
+    matched.forEach(item => {
       // Find which block this CAID belongs to
       const block = blocks.find(block => block.caids.includes(item.caid));
-      
       if (block) {
         // Apply each selected template from the block
-        block.selectedTemplates.forEach((templateId) => {
+        block.selectedTemplates.forEach(templateId => {
           const template = templates.find(t => t.id === templateId);
           if (template) {
             final.push({
@@ -148,21 +122,13 @@ const Index = () => {
         });
       }
     });
-
     setFinalResults(final);
   };
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+  return <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
       <div className="max-w-6xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">
-            CAID-SITE ID Sorting & Matching (Template Management)
-          </h1>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Upload your ordered SITE ID list, match with BOQTracker CAID data, 
-            manage OAID templates, and apply them to CAID blocks.
-          </p>
+          <h1 className="font-bold mb-4 text-3xl text-blue-700">BOQ Tracker Helper</h1>
+          
         </div>
 
         <Card className="shadow-xl">
@@ -213,23 +179,13 @@ const Index = () => {
               </TabsContent>
 
               <TabsContent value="results" className="mt-6">
-                <MatchingResults 
-                  results={matchedResults}
-                  onNext={() => setActiveTab("templates")}
-                />
+                <MatchingResults results={matchedResults} onNext={() => setActiveTab("templates")} />
               </TabsContent>
 
               <TabsContent value="templates" className="mt-6">
-                <OaidTemplateManager 
-                  templates={oaidTemplates}
-                  onTemplatesUpdate={handleTemplatesUpdate}
-                />
+                <OaidTemplateManager templates={oaidTemplates} onTemplatesUpdate={handleTemplatesUpdate} />
                 <div className="flex justify-end mt-6">
-                  <Button 
-                    onClick={() => setActiveTab("blocks")}
-                    className="flex items-center gap-2"
-                    disabled={oaidTemplates.length === 0}
-                  >
+                  <Button onClick={() => setActiveTab("blocks")} className="flex items-center gap-2" disabled={oaidTemplates.length === 0}>
                     Continue to CAID Blocks
                     <ArrowRight className="h-4 w-4" />
                   </Button>
@@ -237,25 +193,16 @@ const Index = () => {
               </TabsContent>
 
               <TabsContent value="blocks" className="mt-6">
-                <CaidBlockSelector 
-                  matchedResults={matchedResults}
-                  templates={oaidTemplates}
-                  onBlocksUpdate={handleBlocksUpdate}
-                />
+                <CaidBlockSelector matchedResults={matchedResults} templates={oaidTemplates} onBlocksUpdate={handleBlocksUpdate} />
               </TabsContent>
 
               <TabsContent value="export" className="mt-6">
-                <ExportResults 
-                  data={finalResults}
-                  oaidPattern={oaidTemplates}
-                />
+                <ExportResults data={finalResults} oaidPattern={oaidTemplates} />
               </TabsContent>
             </Tabs>
           </CardContent>
         </Card>
       </div>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
