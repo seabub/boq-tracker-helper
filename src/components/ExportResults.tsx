@@ -135,7 +135,7 @@ export const ExportResults = ({ data, oaidPattern }: ExportResultsProps) => {
                 variant="outline"
                 className="flex items-center gap-2"
               >
-                <FileTextClassName="h-4 w-4" />
+                <FileText className="h-4 w-4" />
                 Download TXT
               </Button>
               <Button 
