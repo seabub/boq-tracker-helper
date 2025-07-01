@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,7 +7,7 @@ import { MatchingResults } from "@/components/MatchingResults";
 import { OaidTemplateManager } from "@/components/OaidTemplateManager";
 import { CaidBlockSelector } from "@/components/CaidBlockSelector";
 import { ExportResults } from "@/components/ExportResults";
-import { Database, FileText, GitMerge, Settings, Download, Layers, Template } from "lucide-react";
+import { Database, FileText, GitMerge, Settings, Download, Layers, BookTemplate } from "lucide-react";
 
 export interface SiteIdData {
   siteId: string;
@@ -47,6 +46,27 @@ export interface FinalData {
   oaid: string;
   longDescription: string;
   quantity: number;
+}
+
+// Additional exports for components that need them
+export interface OaidData {
+  oaid: string;
+  quantity: number;
+  longDescription: string;
+}
+
+export interface OaidCatalogData {
+  oaid: string;
+  reg: string;
+  regAlias: string;
+  longDescription: string;
+}
+
+export interface CaidBlock {
+  id: string;
+  name: string;
+  caids: string[];
+  oaidPattern: OaidData[];
 }
 
 const Index = () => {
@@ -171,7 +191,7 @@ const Index = () => {
                   Match Results
                 </TabsTrigger>
                 <TabsTrigger value="templates" disabled={matchedResults.length === 0}>
-                  <Template className="h-4 w-4" />
+                  <BookTemplate className="h-4 w-4" />
                   OAID Templates
                 </TabsTrigger>
                 <TabsTrigger value="blocks" disabled={oaidTemplates.length === 0}>

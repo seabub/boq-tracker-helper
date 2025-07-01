@@ -1,11 +1,10 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { Template, Plus, Trash2, Edit2, Save, X, ArrowRight } from "lucide-react";
+import { BookTemplate, Plus, Trash2, Edit2, Save, X, ArrowRight } from "lucide-react";
 import { OaidTemplate } from "@/pages/Index";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useToast } from "@/hooks/use-toast";
@@ -132,7 +131,7 @@ export const OaidTemplateManager = ({
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Template className="h-5 w-5 text-purple-600" />
+            <BookTemplate className="h-5 w-5 text-purple-600" />
             OAID Template Management
           </CardTitle>
           <CardDescription>
