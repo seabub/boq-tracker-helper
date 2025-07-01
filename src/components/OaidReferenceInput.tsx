@@ -21,12 +21,12 @@ export const OaidReferenceInput = ({
 }: OaidReferenceInputProps) => {
   const [selectedReference, setSelectedReference] = useState<MatchedData | null>(null);
   const [oaidPattern, setOaidPattern] = useState<OaidData[]>([
-    { oaid: "", quantity: 1 }
+    { oaid: "", quantity: 1, longDescription: "" }
   ]);
   const { toast } = useToast();
 
   const addOaidRow = () => {
-    setOaidPattern([...oaidPattern, { oaid: "", quantity: 1 }]);
+    setOaidPattern([...oaidPattern, { oaid: "", quantity: 1, longDescription: "" }]);
   };
 
   const removeOaidRow = (index: number) => {
@@ -36,7 +36,7 @@ export const OaidReferenceInput = ({
     }
   };
 
-  const updateOaid = (index: number, field: 'oaid' | 'quantity', value: string | number) => {
+  const updateOaid = (index: number, field: 'oaid' | 'quantity' | 'longDescription', value: string | number) => {
     const newPattern = [...oaidPattern];
     newPattern[index] = { ...newPattern[index], [field]: value };
     setOaidPattern(newPattern);
@@ -145,38 +145,50 @@ export const OaidReferenceInput = ({
               <div>
                 <Label className="text-base font-semibold">Step 2: Define OAID Pattern</Label>
                 <p className="text-sm text-gray-600 mt-1">
-                  Add OAIDs and quantities for the reference CAID
+                  Add OAIDs, descriptions, and quantities for the reference CAID
                 </p>
               </div>
 
               <div className="space-y-3">
                 {oaidPattern.map((item, index) => (
-                  <div key={index} className="flex items-center gap-3">
-                    <div className="flex-1">
+                  <div key={index} className="grid grid-cols-12 gap-3 items-start">
+                    <div className="col-span-4">
                       <Input
                         placeholder="Enter OAID"
                         value={item.oaid}
                         onChange={(e) => updateOaid(index, 'oaid', e.target.value)}
-                        className="font-mono"
+                        className="font-mono text-sm"
                       />
                     </div>
-                    <div className="w-24">
+                    <div className="col-span-5">
+                      <Input
+                        placeholder="Long Description"
+                        value={item.longDescription}
+                        onChange={(e) => updateOaid(index, 'longDescription', e.target.value)}
+                        className="text-sm"
+                      />
+                    </div>
+                    <div className="col-span-2">
                       <Input
                         type="number"
                         min="1"
                         placeholder="Qty"
                         value={item.quantity}
                         onChange={(e) => updateOaid(index, 'quantity', parseInt(e.target.value) || 1)}
+                        className="text-sm"
                       />
                     </div>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => removeOaidRow(index)}
-                      disabled={oaidPattern.length === 1}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+                    <div className="col-span-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => removeOaidRow(index)}
+                        disabled={oaidPattern.length === 1}
+                        className="h-8 w-8 p-0"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </div>
                 ))}
                 
@@ -195,8 +207,10 @@ export const OaidReferenceInput = ({
                   <p className="font-semibold text-blue-800">Pattern Preview:</p>
                   <div className="space-y-1 mt-2">
                     {oaidPattern.filter(item => item.oaid.trim() !== "").map((item, index) => (
-                      <div key={index} className="text-blue-600 text-sm font-mono">
-                        {item.oaid} (Qty: {item.quantity})
+                      <div key={index} className="text-blue-600 text-sm">
+                        <span className="font-mono">{item.oaid}</span>
+                        {item.longDescription && <span className="ml-2">- {item.longDescription}</span>}
+                        <span className="ml-2 text-blue-500">(Qty: {item.quantity})</span>
                       </div>
                     ))}
                   </div>
