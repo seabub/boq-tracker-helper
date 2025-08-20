@@ -109,16 +109,8 @@ export const CaidBlockSelector = ({
       id: `block_${Date.now()}`,
       name: `Block ${blocks.length + 1}`,
       caids: [...selectedCaids],
-      selectedTemplates: selectedTemplatesWithQty.map(t => t.templateId)
+      templatesWithQuantities: [...selectedTemplatesWithQty]
     };
-
-    // Update template quantities
-    selectedTemplatesWithQty.forEach(({ templateId, quantity }) => {
-      const template = templates.find(t => t.id === templateId);
-      if (template) {
-        template.quantity = quantity;
-      }
-    });
 
     setBlocks([...blocks, newBlock]);
     setSelectedCaids([]);
@@ -299,7 +291,10 @@ export const CaidBlockSelector = ({
             <div className="space-y-4">
               <h3 className="font-semibold">Created Blocks ({blocks.length})</h3>
               {blocks.map((block) => {
-                const blockTemplates = templates.filter(t => block.selectedTemplates.includes(t.id));
+                const blockTemplates = block.templatesWithQuantities.map(tq => {
+                  const template = templates.find(t => t.id === tq.templateId);
+                  return template ? { ...template, quantity: tq.quantity } : null;
+                }).filter(Boolean);
                 return (
                   <div key={block.id} className="p-4 border rounded-lg">
                     <div className="flex items-center justify-between mb-2">

@@ -32,7 +32,7 @@ export interface CaidBlockConfig {
   id: string;
   name: string;
   caids: string[];
-  selectedTemplates: string[]; // Template IDs
+  templatesWithQuantities: { templateId: string; quantity: number; }[];
 }
 export interface FinalData {
   siteId: string;
@@ -106,8 +106,8 @@ const Index = () => {
       // Find which block this CAID belongs to
       const block = blocks.find(block => block.caids.includes(item.caid));
       if (block) {
-        // Apply each selected template from the block
-        block.selectedTemplates.forEach(templateId => {
+        // Apply each template with its custom quantity from the block
+        block.templatesWithQuantities.forEach(({ templateId, quantity }) => {
           const template = templates.find(t => t.id === templateId);
           if (template) {
             final.push({
@@ -116,7 +116,7 @@ const Index = () => {
               order: item.order,
               oaid: template.oaid,
               longDescription: template.longDescription,
-              quantity: template.quantity
+              quantity: quantity // Use the custom quantity from the block
             });
           }
         });
